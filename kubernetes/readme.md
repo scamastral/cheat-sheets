@@ -1,30 +1,172 @@
-# Readme
+# List of kubectl commands:
 
-Node.js web app for use in Pluralsight [Getting Started with Kubernetes](https://app.pluralsight.com/library/courses/getting-started-kubernetes/table-of-contents) video course.
+In general, these are the most common commands that can be used with pods / nodes / services / deployments etc.
 
-Packages and dependencies will be upadted annually. May contain vulnerable code, **use at own risk**.
+```bash
+$ kubectl get xyz
+$ kubectl describe xyz my-xyz
+$ kubectl apply -f xyz-yaml-file.yml
+$ kubectl delete xyz my-xyz
+```
 
-## App
+## Cluster
 
-The app, dependencies, and Dockerfile are in the `/App` folder.
+#### Get information about the current cluster
 
-## Kubernetes YAML files
+The context is set to this cluster in your `~/.kube/config` file.
 
-All Kubernetes YAML manifests are in the `Pods`, `Services`, and `Deployments` folders.
+```bash
+$ kubectl cluster info
+```
 
-## Additional references
+## Nodes
 
-List of additional books, courses, blogs, and other places this repo is used/referenced:
+#### Get all nodes on a cluster
+```bash
+$ kubectl get nodes
+```
 
-- None
+## Pods
 
-## Pre-created image
+#### Get all pods on a cluster
+```bash
+$ kubectl get pods
 
-A publically available pre-created container image is available for download [here](https://hub.docker.com/repository/docker/nigelpoulton/getting-started-k8s)
+# --watch flag for live reload
+$ kubectl get pods --watch
 
-## Connect with me
+# --show-labels flag displays the pod's labels
+$ kubectl get pods --show-labels
 
-I'm passionate about tech, and I'm all about making Kubernetes less scary!
+# -o wide flag shows all detail information
+# useful to see on which nodes the pods are running on
+$ kubectl get pods -o wide
+```
 
-- Twitter: [@nigelpoulton](https://twitter.com/nigelpoulton)
-- LinkedIn: [Nigel Poulton](https://www.linkedin.com/in/nigelpoulton/)
+#### Get detailed information for a pod
+```bash
+$ kubectl describe pods your-pod-name
+```
+
+#### Create a pod on a cluster
+
+You need a yaml file describing the pod as a parameter.  
+`-f` flag tells kubernetes that we are creating it declaratively.
+
+```bash
+$ kubectl apply -f your-pod-yaml-file.yml
+```
+
+#### Delete a pod from a cluster
+
+There are 2 ways to delete a pod:
+
+```bash
+$ kubectl delete pod your-pod-name
+
+$ kubectl delete -f your-pod-yaml-file.yml
+```
+
+## Services
+
+#### Get all services from a cluster
+```bash
+$ kubectl get svc
+```
+
+#### Create a service on a cluster
+
+You need a yaml file describing the service as a parameter.  
+`-f` flag tells kubernetes that we are creating it declaratively.
+
+```bash
+$ kubectl apply -f your-service-yaml-file.yml
+```
+
+## Deployments
+
+#### Get all deployments from a cluster
+```bash
+$ kubectl get deploy
+```
+
+#### Make a deployment to a cluster
+
+You need a yaml file describing the pod as a parameter.  
+`-f` flag tells kubernetes that we are creating it declaratively.
+
+```bash
+$ kubectl apply -f your-deployment-yaml-file.yml
+```
+
+## Replica Sets
+
+#### Get all replica sets from a cluster
+```bash
+$ kubectl get rs
+```
+
+## Endpoints
+
+#### Get all endpoints from a cluster
+```bash
+$ kubectl get ep
+```
+
+#### Get detailed information for an endpoint
+```bash
+$ kubectl describe ep your-ep-name
+```
+
+# Kubernetes Deployments with kubectl
+This is an example of how you can deploy a new version of your app with a rolling update.  
+Pods will be replaced step by step until all the old pods are gone and only the new version of your app is served.
+
+#### Deploying a new version
+Now we modify our `my-deployment-yaml-file.yml` with a new version of our app for example.  
+Deploy it using this command:
+
+```bash
+$ kubectl apply -f my-deployment-yaml-file.yml
+``` 
+
+#### Observe the process
+
+We can use the following commands in 2 different terminal windows to see the live progress of the rolling update
+
+```bash
+# list all the pods in terminal 1
+$ kubectl get pods --watch
+
+# see the update
+$ kubectl rollout status deploy my-deployment
+```
+
+Now you should see the progress in the before prepared terminals updated live.
+
+#### Rollback to old version
+
+With this command we can see that the replica set with the old app version is still here:
+```bash
+$ kubectl get rs
+```
+
+Take the name of the replica set from the output of the command above and use it to see additional information about the replica set.  
+We can for example see, for which image version the replica set was managing replicas for.
+```bash
+$ kubectl describe rs my-rs-name
+```
+
+We can take a look at the rollout history using this command:
+```bash
+$ kubectl rollout history deploy my-deployment
+```
+
+The output from the command above shows us the different revisions we rolled out.
+We can roll back to the older version in case we need to using the following commands:
+```bash
+# rollback to revision 1
+$ kubectl rollout undo deploy my-deployment --to-revision=1
+```
+
+Now all the pods should be back to the previous version from revision 1.
