@@ -7,7 +7,7 @@ In this example the hotfix-flow of the now-app is used to demonstrate the capabi
 ### TLDR - just give me the commands already:
 
 ```
-# on prod now branch, get commit hash of desired commit
+# on prod-now branch, get commit hash of desired commit
 $ git log
 
 # create tmp branch from master to merge changes
